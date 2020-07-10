@@ -1,0 +1,74 @@
+A brief summary for SSAdNDP is presented, in case you are interested.
+
+A Paper for this method presented shown as below, and the source package file is attached as well, which contains 
+manual in case you would like to have a read.
+<Solid state adaptive natural density partitioning: a tool for deciphering multi-center bonding in periodic systems> 
+https://pubs.rsc.org/en/content/articlelanding/2013/CP/c3cp50350j#!divAbstract
+
+How to do the calculations?
+
+Step1, do a VASP scf  with below INCAR.
+------------------------------------
+SYSTEM = SnN
+PREC = Accurate
+ENCUT = 520.00
+EDIFF = 1e-6
+IBRION = -1
+NSW = 0
+ISMEAR = 1
+SIGMA = 0.05
+ISTART = 0
+LCHARG = TRUE
+LWAVE = TRUE
+PSTRESS = 0
+KSPACING = 0.2
+
+#NBO for SSAdDNP
+LNBO = True
+ISYM = 0
+#NPAR = 4
+------------------------------------
+
+The wave function file (wavefunction.dat) is expected as an output file. It’s notable here, the regular 
+VASP (official one) does not contain this feature yet. We should make a patch and recompile it. 
+(https://github.com/Chengcheng-Xiao/Periodic_NBO)
+
+The one is available on THOR (Irene not yet), you may use the attached script to submit this VASP 
+calculation on THOR.
+
+
+Step2, Project the wave function into Natural Bond Orbital. 
+
+I. Prepare a basis set file for you system in Gaussian format. (You may download it from https://www.basissetexchange.org/ or others)
+
+II. Delete Line #6 (element) of CONTCAR. (NBO and SSAdNDP read VASP-4 format file)
+
+III. Update your environment (bashrc) with following lines for Project and SSAdNDP code.
+module load intel-compilers-13/13.1.2.183
+export LD_LIBRARY_PATH=/sw/sdev/intel/composer_xe_2013.4.183/composer_xe_2013/mkl/lib/intel64/:$LD_LIBRARY_PATH
+
+IV. Execute the projection:
+> /home/bwang/bin/projection basis.inp wavefunction.dat NBO.out
+
+
+Step3, Run SSAdNDP analysis to search nc-2e bonds.
+
+Prepare the input file SSAdNDP.inp, see attachment as the template.
+
+> /home/bwang/bin/ssadndp.exe SSAdNDP.inp 
+
+The possible nc-2e bonds would be save in output files vis_gs_nc-bonds.out
+
+To visualize the nc-2e bonds.
+> /home/bwang/bin/visual.exe vis_gs_nc-bonds.out 
+
+Then the output files *.cube imported to VESTA code, enjoy. Here, you may need have carefully 
+read for more detail information on Manual (page 7, 8).
+
+Friendly note:
+To do SSAdNDP analysis (search nc-2e bonds) correctly and efficiently, we would better do it with 
+help of classical chemical bonding analysis (Lewis structure, VSEPR, Octet rule, Zintl-Klemm concept).
+
+
+Best,
+Busheng 
